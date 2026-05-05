@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Dashboard</title>
+<style>
+:root {
+  --navy:    #1A2332;
+  --teal:    #22B89E;
+  --amber:   #E8B84B;
+  --red:     #DC2626;
+  --gray-ns: #9CA3AF;
+  --lime:    #CBEF4E;
+  --bg:      #F3F4F1;
+  --border:  #E0E0DA;
+  --text:    #2D2D2D;
+  --muted:   #6B7280;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+/* HEADER */
+.site-header { background: var(--navy); color: white; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+.site-header h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.02em; }
+.site-header h1 .dot { color: var(--lime); margin-right: 6px; }
+.header-meta { font-size: 11px; color: rgba(255,255,255,0.6); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* TABS */
+.tabs-nav { background: var(--navy); padding: 0 24px; display: flex; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.tab-btn { background: transparent; border: none; color: rgba(255,255,255,0.55); padding: 12px 22px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; }
+.tab-btn:hover { color: white; }
+.tab-btn.active { color: white; border-bottom-color: var(--lime); }
+
+/* PAGES */
+.pane { display: none; padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+.pane.active { display: block; }
+
+/* CARDS */
+.card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 22px 24px; margin-bottom: 16px; }
+.card-title { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+.card-sub { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+
+/* STAT GRID */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+.stat-card { background: white; border: 1px solid var(--border); border-left: 3px solid var(--teal); border-radius: 8px; padding: 18px 22px; }
+.stat-card.amber { border-left-color: var(--amber); }
+.stat-card.red { border-left-color: var(--red); }
+.stat-card.navy { border-left-color: var(--navy); }
+.stat-num { font-size: 32px; font-weight: 900; color: var(--navy); line-height: 1; margin-bottom: 6px; }
+.stat-lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+.stat-delta { font-size: 11px; font-weight: 700; margin-top: 6px; }
+.stat-delta.up { color: var(--teal); }
+.stat-delta.down { color: var(--red); }
+
+/* BAR CHART (CSS-only, fake data) */
+.bar-chart { display: flex; align-items: flex-end; gap: 16px; height: 220px; padding: 12px 4px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.bar { width: 100%; max-width: 64px; background: linear-gradient(180deg, var(--teal), #1a8c75); border-radius: 4px 4px 0 0; position: relative; transition: height 0.4s; }
+.bar-val { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--navy); white-space: nowrap; }
+.bar-lbl { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+/* DONUT (conic-gradient) */
+.donut-wrap { display: flex; align-items: center; gap: 28px; }
+.donut { position: relative; width: 160px; height: 160px; flex-shrink: 0; }
+.donut-ring { width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(var(--teal) 0 60%, var(--amber) 60% 85%, var(--red) 85% 100%); }
+.donut-ring::after { content: ''; position: absolute; inset: 22%; background: white; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--border); }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; }
+.donut-num { font-size: 28px; font-weight: 900; color: var(--navy); line-height: 1; }
+.donut-lbl { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+.donut-legend { display: flex; flex-direction: column; gap: 10px; }
+.donut-legend-item { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.donut-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* TABLE */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+.tbl thead th { background: var(--navy); color: white; padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; }
+.tbl tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.tbl tbody tr:nth-child(even) td { background: #FAFAF8; }
+.tbl tbody tr:last-child td { border-bottom: none; }
+.tbl td:first-child { font-weight: 600; }
+.pill { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 3px; }
+.pill.on-track { background: #DCFCE7; color: #14532D; }
+.pill.at-risk  { background: #FEF3C7; color: #78350F; }
+.pill.blocked  { background: #FEE2E2; color: #7F1D1D; }
+
+/* PROGRESS BARS */
+.progress-list { display: flex; flex-direction: column; gap: 14px; }
+.progress-row { display: grid; grid-template-columns: 200px 1fr auto; gap: 14px; align-items: center; }
+.progress-label { font-size: 12px; font-weight: 700; color: var(--text); }
+.progress-track { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--teal); border-radius: 5px; transition: width 0.4s; }
+.progress-fill.amber { background: var(--amber); }
+.progress-fill.red { background: var(--red); }
+.progress-pct { font-size: 12px; font-weight: 800; color: var(--navy); min-width: 40px; text-align: right; }
+
+/* TWO-COL LAYOUT */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ─── Password gate (soft, client-side; not real security) ─── */
+.pw-locked .site-header,
+.pw-locked .tabs-nav,
+.pw-locked .pane { visibility: hidden; }
+.pw-gate-overlay { position: fixed; inset: 0; background: var(--navy); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+.pw-gate-card { background: white; border-radius: 12px; padding: 38px 42px; width: min(440px, 100%); box-shadow: 0 24px 60px rgba(0,0,0,0.45); box-sizing: border-box; }
+.pw-gate-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.pw-gate-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--lime); }
+.pw-gate-brand-text { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+.pw-gate-title { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; line-height: 1.3; }
+.pw-gate-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 24px; line-height: 1.55; }
+.pw-gate-input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit; box-sizing: border-box; letter-spacing: 0.04em; }
+.pw-gate-input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26,35,50,0.1); }
+.pw-gate-btn { width: 100%; margin-top: 14px; padding: 12px; background: var(--navy); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; }
+.pw-gate-btn:hover { background: #0d1320; }
+.pw-gate-error { color: var(--red); font-size: 12px; font-weight: 700; margin-top: 12px; min-height: 16px; }
+</style>
+</head>
+<body>
+
+<!-- Password gate (soft, client-side; not real security) -->
+<div id="pw-gate" class="pw-gate-overlay" hidden>
+  <form class="pw-gate-card" id="pw-gate-form" autocomplete="off">
+    <div class="pw-gate-brand">
+      <div class="pw-gate-dot"></div>
+      <div class="pw-gate-brand-text">Test Dashboard</div>
+    </div>
+    <div class="pw-gate-title">Restricted</div>
+    <div class="pw-gate-sub">Enter the access code to view this dashboard. Access persists for the current browser session.</div>
+    <input type="password" class="pw-gate-input" id="pw-gate-input" placeholder="Access code" autocomplete="off" required>
+    <button type="submit" class="pw-gate-btn">Unlock dashboard</button>
+    <div class="pw-gate-error" id="pw-gate-error"></div>
+  </form>
+</div>
+
+<header class="site-header">
+  <h1><span class="dot">●</span> Test Dashboard</h1>
+  <div class="header-meta">Mock data · For testing only</div>
+</header>
+
+<nav class="tabs-nav">
+  <button class="tab-btn active" data-tab="overview">Overview</button>
+  <button class="tab-btn" data-tab="details">Details</button>
+</nav>
+
+<!-- ═══════════ PAGE 1 — OVERVIEW ═══════════ -->
+<div class="pane active" id="pane-overview">
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num">142</div>
+      <div class="stat-lbl">Active Items</div>
+      <div class="stat-delta up">▲ 12 vs last week</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-num">8</div>
+      <div class="stat-lbl">At Risk</div>
+      <div class="stat-delta down">▼ 3 vs last week</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-num">3</div>
+      <div class="stat-lbl">Blocked</div>
+      <div class="stat-delta up">▲ 1 vs last week</div>
+    </div>
+    <div class="stat-card navy">
+      <div class="stat-num">73%</div>
+      <div class="stat-lbl">On Track</div>
+      <div class="stat-delta up">▲ 4pts vs last week</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Weekly Throughput</div>
+      <div class="card-sub">Items completed by week — last 6 weeks</div>
+      <div class="bar-chart">
+        <div class="bar-col"><div class="bar" style="height:42%"><span class="bar-val">18</span></div><div class="bar-lbl">W1</div></div>
+        <div class="bar-col"><div class="bar" style="height:55%"><span class="bar-val">23</span></div><div class="bar-lbl">W2</div></div>
+        <div class="bar-col"><div class="bar" style="height:38%"><span class="bar-val">16</span></div><div class="bar-lbl">W3</div></div>
+        <div class="bar-col"><div class="bar" style="height:71%"><span class="bar-val">29</span></div><div class="bar-lbl">W4</div></div>
+        <div class="bar-col"><div class="bar" style="height:62%"><span class="bar-val">26</span></div><div class="bar-lbl">W5</div></div>
+        <div class="bar-col"><div class="bar" style="height:88%"><span class="bar-val">37</span></div><div class="bar-lbl">W6</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Status Distribution</div>
+      <div class="card-sub">Snapshot of all items as of today</div>
+      <div class="donut-wrap">
+        <div class="donut">
+          <div class="donut-ring"></div>
+          <div class="donut-center">
+            <div class="donut-num">60%</div>
+            <div class="donut-lbl">On Track</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--teal)"></div><strong>60%</strong>&nbsp;On track <span style="color:var(--muted)">· 85 items</span></div>
+          <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--amber)"></div><strong>25%</strong>&nbsp;At risk <span style="color:var(--muted)">· 36 items</span></div>
+          <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--red)"></div><strong>15%</strong>&nbsp;Blocked <span style="color:var(--muted)">· 21 items</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Workstream Progress</div>
+    <div class="card-sub">% complete by workstream</div>
+    <div class="progress-list">
+      <div class="progress-row">
+        <div class="progress-label">Alpha Workstream</div>
+        <div class="progress-track"><div class="progress-fill" style="width:78%"></div></div>
+        <div class="progress-pct">78%</div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label">Bravo Workstream</div>
+        <div class="progress-track"><div class="progress-fill amber" style="width:45%"></div></div>
+        <div class="progress-pct">45%</div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label">Charlie Workstream</div>
+        <div class="progress-track"><div class="progress-fill" style="width:62%"></div></div>
+        <div class="progress-pct">62%</div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label">Delta Workstream</div>
+        <div class="progress-track"><div class="progress-fill red" style="width:18%"></div></div>
+        <div class="progress-pct">18%</div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label">Echo Workstream</div>
+        <div class="progress-track"><div class="progress-fill" style="width:91%"></div></div>
+        <div class="progress-pct">91%</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ PAGE 2 — DETAILS ═══════════ -->
+<div class="pane" id="pane-details">
+
+  <div class="card">
+    <div class="card-title">Item Detail</div>
+    <div class="card-sub">Mock item list — 10 rows</div>
+    <table class="tbl">
+      <thead>
+        <tr><th>ID</th><th>Item</th><th>Owner</th><th>Due</th><th>Status</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>I-001</td><td>Draft client onboarding playbook</td><td>Alex</td><td>14 May</td><td><span class="pill on-track">ON TRACK</span></td><td>First draft circulated</td></tr>
+        <tr><td>I-002</td><td>Refresh pricing model — Q2</td><td>Jamie</td><td>20 May</td><td><span class="pill at-risk">AT RISK</span></td><td>Awaiting Finance review</td></tr>
+        <tr><td>I-003</td><td>Migrate legacy reports to new template</td><td>Sam</td><td>10 Jun</td><td><span class="pill on-track">ON TRACK</span></td><td>40% migrated</td></tr>
+        <tr><td>I-004</td><td>Vendor selection — automation tools</td><td>Riley</td><td>05 Jun</td><td><span class="pill blocked">BLOCKED</span></td><td>Procurement hold</td></tr>
+        <tr><td>I-005</td><td>Quarterly stakeholder readout</td><td>Morgan</td><td>30 May</td><td><span class="pill on-track">ON TRACK</span></td><td>Deck in review</td></tr>
+        <tr><td>I-006</td><td>Risk register cleanse</td><td>Casey</td><td>17 May</td><td><span class="pill on-track">ON TRACK</span></td><td>—</td></tr>
+        <tr><td>I-007</td><td>Hire — Senior Analyst</td><td>Taylor</td><td>15 Jun</td><td><span class="pill at-risk">AT RISK</span></td><td>2 candidates in pipeline</td></tr>
+        <tr><td>I-008</td><td>Update partner contracts</td><td>Jordan</td><td>25 May</td><td><span class="pill on-track">ON TRACK</span></td><td>Legal sign-off pending</td></tr>
+        <tr><td>I-009</td><td>Build automated weekly digest</td><td>Pat</td><td>08 Jun</td><td><span class="pill on-track">ON TRACK</span></td><td>Prototype ready Friday</td></tr>
+        <tr><td>I-010</td><td>Decommission legacy tracker</td><td>Lee</td><td>30 Jun</td><td><span class="pill blocked">BLOCKED</span></td><td>Awaiting data export</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Top Owners by Open Items</div>
+      <div class="card-sub">Workload distribution</div>
+      <div class="progress-list">
+        <div class="progress-row"><div class="progress-label">Alex</div><div class="progress-track"><div class="progress-fill" style="width:85%"></div></div><div class="progress-pct">17</div></div>
+        <div class="progress-row"><div class="progress-label">Jamie</div><div class="progress-track"><div class="progress-fill" style="width:65%"></div></div><div class="progress-pct">13</div></div>
+        <div class="progress-row"><div class="progress-label">Riley</div><div class="progress-track"><div class="progress-fill amber" style="width:55%"></div></div><div class="progress-pct">11</div></div>
+        <div class="progress-row"><div class="progress-label">Morgan</div><div class="progress-track"><div class="progress-fill" style="width:40%"></div></div><div class="progress-pct">8</div></div>
+        <div class="progress-row"><div class="progress-label">Pat</div><div class="progress-track"><div class="progress-fill" style="width:25%"></div></div><div class="progress-pct">5</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Upcoming Milestones</div>
+      <div class="card-sub">Next 30 days</div>
+      <table class="tbl" style="margin-top:0;">
+        <thead><tr><th>Date</th><th>Milestone</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>10 May</td><td>Pilot kickoff — Alpha</td><td>Alex</td></tr>
+          <tr><td>14 May</td><td>Vendor demo — automation tools</td><td>Riley</td></tr>
+          <tr><td>20 May</td><td>Q2 pricing approval gate</td><td>Jamie</td></tr>
+          <tr><td>25 May</td><td>Partner contract sign-off</td><td>Jordan</td></tr>
+          <tr><td>30 May</td><td>Stakeholder readout</td><td>Morgan</td></tr>
+          <tr><td>05 Jun</td><td>Build sprint review</td><td>Pat</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Soft password gate (client-side only — NOT real security) ──
+(function pwGate() {
+  const HASH = '59395e21f5c63fa9c80f2bfe08923822fc8fef0b5e295a4a7468f25d24eb718b'; // SHA-256("TEST2026")
+  const KEY  = 'test-dashboard-auth';
+  const gate = document.getElementById('pw-gate');
+  const form = document.getElementById('pw-gate-form');
+  const input = document.getElementById('pw-gate-input');
+  const err  = document.getElementById('pw-gate-error');
+  let authed = false;
+  try { authed = sessionStorage.getItem(KEY) === '1'; } catch (_) {}
+  if (authed) return;
+  document.body.classList.add('pw-locked');
+  gate.hidden = false;
+  setTimeout(() => input && input.focus(), 50);
+  async function sha256Hex(s) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const v = input.value;
+    err.textContent = '';
+    if (!v) return;
+    let h = '';
+    try { h = await sha256Hex(v); } catch (_) { err.textContent = 'Browser could not hash the input.'; return; }
+    if (h === HASH) {
+      try { sessionStorage.setItem(KEY, '1'); } catch (_) {}
+      gate.remove();
+      document.body.classList.remove('pw-locked');
+    } else {
+      err.textContent = 'Incorrect access code';
+      input.value = '';
+      input.focus();
+    }
+  });
+})();
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + target));
+  });
+});
+</script>
+
+</body>
+</html>
